@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema Estudiantes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="login" class="card">
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Correo electrónico">
+  <button onclick="sendOTP()">Enviar OTP</button>
+</div>
+
+<div id="otp" class="card hidden">
+  <h2>Verificar Código</h2>
+  <input type="text" id="otpInput" placeholder="Código OTP">
+  <button onclick="verifyOTP()">Verificar</button>
+</div>
+
+<div id="app" class="card hidden">
+  <h2>Gestión de Estudiantes</h2>
+
+  <input id="nombre" placeholder="Nombre">
+  <input id="edad" placeholder="Edad">
+  <input id="nota" placeholder="Nota">
+  <button onclick="crear()">Guardar</button>
+
+  <ul id="lista"></ul>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
