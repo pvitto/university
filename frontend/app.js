@@ -1,135 +1,157 @@
-const API_URL = '/students';  // MODIFICADO: URL relativa para que funcione en producción
+const API_URL = "/students";
 
-// AGREGADO: guardia de sesión - si no hay login, redirige al login
+// Guardia de sesión: si no hay correo guardado, manda al login
 const userEmail = sessionStorage.getItem("user_email");
 if (!userEmail) {
     window.location.href = "/";
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // AGREGADO: mostrar correo del usuario logueado
-    const sessionSpan = document.getElementById('user-session');
-    if (sessionSpan) sessionSpan.textContent = userEmail;
+const form        = document.getElementById("student-form");
+const formTitle   = document.getElementById("form-title");
+const idInput     = document.getElementById("student-id");
+const nameInput   = document.getElementById("name");
+const ageInput    = document.getElementById("age");
+const gradeInput  = document.getElementById("grade");
+const submitBtn   = document.getElementById("submit-btn");
+const cancelBtn   = document.getElementById("cancel-btn");
+const tbody       = document.getElementById("students-list");
+const emptyState  = document.getElementById("empty-state");
+const toast       = document.getElementById("toast");
 
-    // AGREGADO: botón cerrar sesión
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            sessionStorage.removeItem("user_email");
-            window.location.href = "/";
-        });
-    }
 
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("user-session").textContent = userEmail;
+    document.getElementById("logout-btn").addEventListener("click", logout);
+    form.addEventListener("submit", saveStudent);
+    cancelBtn.addEventListener("click", resetForm);
     loadStudents();
-    setupForm();
 });
 
-function loadStudents() {
-    fetch(API_URL)
-        .then(response => {
-            if (!response.ok) throw new Error('Error al cargar estudiantes');
-            return response.json();
-        })
-        .then(students => renderStudents(students))
-        .catch(error => showMessage('Error al cargar estudiantes: ' + error.message, 'error'));
-}
 
-function renderStudents(students) {
-    const tbody = document.getElementById('students-list');
-    tbody.innerHTML = '';
+async function loadStudents() {
+    try {
+        const response = await fetch(`${API_URL}/`);
+        if (!response.ok) throw new Error("No se pudo cargar la lista");
+        const students = await response.json();
 
-    if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No hay estudiantes</td></tr>';
-        return;
+        tbody.innerHTML = "";
+        if (students.length === 0) {
+            emptyState.style.display = "block";
+            return;
+        }
+        emptyState.style.display = "none";
+
+        students.forEach(s => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${s.id}</td>
+                <td>${escapeHtml(s.name)}</td>
+                <td>${s.age}</td>
+                <td>${gradeBadge(s.grade)}</td>
+                <td>
+                    <button class="btn btn-warning" onclick="editStudent(${s.id}, '${escapeHtml(s.name)}', ${s.age}, ${s.grade})">✏️ Editar</button>
+                    <button class="btn btn-danger" onclick="deleteStudent(${s.id})">🗑️ Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        showToast(err.message, "error");
     }
-
-    students.forEach(student => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${student.id}</td>
-            <td>${student.name}</td>
-            <td>${student.age}</td>
-            <td>${student.grade}</td>
-            <td>
-                <button class="action-btn btn-edit" onclick="editStudent(${student.id}, '${student.name}', ${student.age}, ${student.grade})">Editar</button>
-                <button class="action-btn btn-delete" onclick="deleteStudent(${student.id})">Eliminar</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
 }
 
-function setupForm() {
-    const form = document.getElementById('student-form');
-    const cancelBtn = document.getElementById('cancel-btn');
-    form.addEventListener('submit', (e) => { e.preventDefault(); saveStudent(); });
-    cancelBtn.addEventListener('click', resetForm);
-}
 
-function saveStudent() {
-    const id = document.getElementById('student-id').value;
-    const name = document.getElementById('name').value;
-    const age = parseInt(document.getElementById('age').value);
-    const grade = parseFloat(document.getElementById('grade').value);
-    const studentData = { name, age, grade };
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_URL}/${id}` : API_URL;
+async function saveStudent(e) {
+    e.preventDefault();
+    const id = idInput.value;
+    const data = {
+        name: nameInput.value.trim(),
+        age: parseInt(ageInput.value),
+        grade: parseFloat(gradeInput.value)
+    };
 
-    fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(studentData)
-    })
-    .then(response => {
-        if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Error en la operación'); });
-        return response.json();
-    })
-    .then(() => {
-        showMessage(id ? 'Estudiante actualizado' : 'Estudiante creado', 'success');
+    const method = id ? "PUT" : "POST";
+    const url    = id ? `${API_URL}/${id}` : `${API_URL}/`;
+
+    try {
+        const response = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Error al guardar");
+        }
+
+        showToast(id ? "Estudiante actualizado ✅" : "Estudiante creado ✅", "success");
         resetForm();
         loadStudents();
-    })
-    .catch(error => showMessage('Error: ' + error.message, 'error'));
+    } catch (err) {
+        showToast(err.message, "error");
+    }
 }
+
 
 function editStudent(id, name, age, grade) {
-    document.getElementById('student-id').value = id;
-    document.getElementById('name').value = name;
-    document.getElementById('age').value = age;
-    document.getElementById('grade').value = grade;
-    document.getElementById('form-title').textContent = 'Editar Estudiante';
-    document.getElementById('submit-btn').textContent = 'Actualizar';
-    document.getElementById('cancel-btn').style.display = 'inline-block';
+    idInput.value    = id;
+    nameInput.value  = name;
+    ageInput.value   = age;
+    gradeInput.value = grade;
+    formTitle.textContent = "✏️ Editar Estudiante";
+    submitBtn.textContent = "Actualizar";
+    nameInput.focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function deleteStudent(id) {
-    if (!confirm('¿Estás seguro de eliminar este estudiante?')) return;
 
-    fetch(`${API_URL}/${id}`, { method: 'DELETE' })
-    .then(response => {
-        if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Error al eliminar'); });
-        return response.json();
-    })
-    .then(() => {
-        showMessage('Estudiante eliminado', 'success');
+async function deleteStudent(id) {
+    if (!confirm("¿Seguro que quieres eliminar este estudiante?")) return;
+
+    try {
+        const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || "Error al eliminar");
+        }
+        showToast("Estudiante eliminado 🗑️", "success");
         loadStudents();
-    })
-    .catch(error => showMessage('Error: ' + error.message, 'error'));
+    } catch (err) {
+        showToast(err.message, "error");
+    }
 }
+
 
 function resetForm() {
-    document.getElementById('student-form').reset();
-    document.getElementById('student-id').value = '';
-    document.getElementById('form-title').textContent = 'Nuevo Estudiante';
-    document.getElementById('submit-btn').textContent = 'Guardar';
-    document.getElementById('cancel-btn').style.display = 'none';
+    form.reset();
+    idInput.value = "";
+    formTitle.textContent = "➕ Nuevo Estudiante";
+    submitBtn.textContent = "Guardar";
 }
 
-function showMessage(text, type) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}`;
-    messageDiv.textContent = text;
-    const container = document.querySelector('.container');
-    container.insertBefore(messageDiv, container.firstChild);
-    setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
+
+function logout() {
+    sessionStorage.removeItem("user_email");
+    window.location.href = "/";
+}
+
+
+function gradeBadge(grade) {
+    const cls = grade >= 4 ? "grade-good" : grade >= 3 ? "grade-mid" : "grade-bad";
+    return `<span class="grade-badge ${cls}">${grade.toFixed(1)}</span>`;
+}
+
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
+
+
+function showToast(message, type) {
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove("show"), 3000);
 }
