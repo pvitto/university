@@ -1,6 +1,7 @@
 # Importación de FastAPI y CORS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.controllers.auth_controller import auth_bp
 
 # Importación del router de estudiantes
 # students.py contiene todas las rutas relacionadas con estudiantes
@@ -45,3 +46,5 @@ app.add_middleware(RateLimitMiddleware)
 # Todas las rutas de students.py estarán disponibles en /students
 app.include_router(students.router)
 app.include_router(email.router)
+
+app.register_blueprint(auth_bp, url_prefix="/auth")
