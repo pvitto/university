@@ -53,7 +53,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 f"Path: {request.url.path} | "
                 f"IP: {client_ip} | "
                 f"Status: {response.status_code} | "
-                f"Datos: {body.replace('\n', '') if body else 'N/A'}"
+                f"Datos: {body.replace(chr(10), '') if body else 'N/A'}"
             )
             audit_logger.info(audit_message)
 
