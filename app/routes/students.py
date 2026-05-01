@@ -59,3 +59,16 @@ def update_student(student_id: int, updated_data: Student, db: Session = Depends
 def delete_student(student_id: int, db: Session = Depends(get_db)):
     # Llama al controller para eliminar el registro
     return StudentController.delete(student_id, db)
+
+    # POST /students/ - Crea un nuevo estudiante
+# student: cuerpo de la solicitud (JSON) validado por Pydantic
+@router.post("/", 
+             response_model=StudentResponse, 
+             summary="Crear un nuevo alumno", 
+             description="Crea un registro de estudiante en la base de datos y devuelve el objeto creado con su ID")
+def create_student(student: Student, db: Session = Depends(get_db)):
+    """
+    Crea un registro de estudiante en la DB y devuelve el objeto creado.
+    Esta descripción aparecerá detallada en la documentación Swagger.
+    """
+    return StudentController.create(student, db)
