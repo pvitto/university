@@ -23,3 +23,8 @@ async def send_email(to_email: str, body: str) -> dict:
         server.send_message(msg)
 
     return {"status": "success", "message": f"Correo enviado a {to_email}"}
+
+
+
+
+    
