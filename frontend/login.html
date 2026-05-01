@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gestión Estudiantes</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            width: 380px;
+        }
+        .login-card h1 { text-align: center; color: #2563eb; margin-bottom: 24px; }
+        .login-card label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+        .login-card input {
+            width: 100%; padding: 10px 12px; margin-bottom: 16px;
+            border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px;
+            box-sizing: border-box;
+        }
+        .login-card input:focus { outline: none; border-color: #2563eb; }
+        .login-card button {
+            width: 100%; padding: 12px; background: #2563eb;
+            color: white; border: none; border-radius: 8px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+        }
+        .login-card button:hover { background: #1d4ed8; }
+        .login-card button:disabled { background: #9ca3af; cursor: not-allowed; }
+        .btn-secondary { background: #6b7280 !important; margin-top: 8px; }
+        .btn-secondary:hover { background: #4b5563 !important; }
+        .hidden { display: none; }
+        .msg { margin-top: 12px; text-align: center; font-size: 14px; }
+        .ok  { color: #059669; }
+        .err { color: #dc2626; }
+        #otp-input { text-align: center; letter-spacing: 8px; font-size: 22px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h1>🔐 Login</h1>
+
+            <div id="step-email">
+                <label for="email-input">Correo electrónico</label>
+                <input type="email" id="email-input" placeholder="tucorreo@gmail.com" required>
+                <button id="send-btn">Enviar código</button>
+            </div>
+
+            <div id="step-otp" class="hidden">
+                <p style="margin-bottom:12px; color:#374151;">
+                    Te enviamos un código a <b id="email-shown"></b>
+                </p>
+                <label for="otp-input">Código de 6 dígitos</label>
+                <input type="text" id="otp-input" maxlength="6" placeholder="000000">
+                <button id="verify-btn">Verificar</button>
+                <button id="back-btn" class="btn-secondary">Cambiar correo</button>
+            </div>
+
+            <p id="msg" class="msg"></p>
+        </div>
+    </div>
+
+    <script src="/static/login.js"></script>
+</body>
+</html>

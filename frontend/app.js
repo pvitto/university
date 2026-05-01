@@ -1,6 +1,25 @@
-const API_URL = 'http://localhost:8000/students';
+const API_URL = '/students';  // MODIFICADO: URL relativa para que funcione en producción
+
+// AGREGADO: guardia de sesión - si no hay login, redirige al login
+const userEmail = sessionStorage.getItem("user_email");
+if (!userEmail) {
+    window.location.href = "/";
+}
 
 document.addEventListener('DOMContentLoaded', () => {
+    // AGREGADO: mostrar correo del usuario logueado
+    const sessionSpan = document.getElementById('user-session');
+    if (sessionSpan) sessionSpan.textContent = userEmail;
+
+    // AGREGADO: botón cerrar sesión
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem("user_email");
+            window.location.href = "/";
+        });
+    }
+
     loadStudents();
     setupForm();
 });
@@ -8,17 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadStudents() {
     fetch(API_URL)
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al cargar estudiantes');
-            }
+            if (!response.ok) throw new Error('Error al cargar estudiantes');
             return response.json();
         })
-        .then(students => {
-            renderStudents(students);
-        })
-        .catch(error => {
-            showMessage('Error al cargar estudiantes: ' + error.message, 'error');
-        });
+        .then(students => renderStudents(students))
+        .catch(error => showMessage('Error al cargar estudiantes: ' + error.message, 'error'));
 }
 
 function renderStudents(students) {
@@ -49,12 +62,7 @@ function renderStudents(students) {
 function setupForm() {
     const form = document.getElementById('student-form');
     const cancelBtn = document.getElementById('cancel-btn');
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveStudent();
-    });
-
+    form.addEventListener('submit', (e) => { e.preventDefault(); saveStudent(); });
     cancelBtn.addEventListener('click', resetForm);
 }
 
@@ -63,33 +71,25 @@ function saveStudent() {
     const name = document.getElementById('name').value;
     const age = parseInt(document.getElementById('age').value);
     const grade = parseFloat(document.getElementById('grade').value);
-
     const studentData = { name, age, grade };
-
     const method = id ? 'PUT' : 'POST';
     const url = id ? `${API_URL}/${id}` : API_URL;
 
     fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        method,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(studentData)
     })
     .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => { throw new Error(err.detail || 'Error en la operación'); });
-        }
+        if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Error en la operación'); });
         return response.json();
     })
-    .then(data => {
+    .then(() => {
         showMessage(id ? 'Estudiante actualizado' : 'Estudiante creado', 'success');
         resetForm();
         loadStudents();
     })
-    .catch(error => {
-        showMessage('Error: ' + error.message, 'error');
-    });
+    .catch(error => showMessage('Error: ' + error.message, 'error'));
 }
 
 function editStudent(id, name, age, grade) {
@@ -103,26 +103,18 @@ function editStudent(id, name, age, grade) {
 }
 
 function deleteStudent(id) {
-    if (!confirm('¿Estás seguro de eliminar este estudiante?')) {
-        return;
-    }
+    if (!confirm('¿Estás seguro de eliminar este estudiante?')) return;
 
-    fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
-    })
+    fetch(`${API_URL}/${id}`, { method: 'DELETE' })
     .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => { throw new Error(err.detail || 'Error al eliminar'); });
-        }
+        if (!response.ok) return response.json().then(err => { throw new Error(err.detail || 'Error al eliminar'); });
         return response.json();
     })
-    .then(data => {
+    .then(() => {
         showMessage('Estudiante eliminado', 'success');
         loadStudents();
     })
-    .catch(error => {
-        showMessage('Error: ' + error.message, 'error');
-    });
+    .catch(error => showMessage('Error: ' + error.message, 'error'));
 }
 
 function resetForm() {
@@ -137,11 +129,7 @@ function showMessage(text, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
     messageDiv.textContent = text;
-    
     const container = document.querySelector('.container');
     container.insertBefore(messageDiv, container.firstChild);
-    
-    setTimeout(() => {
-        messageDiv.style.display = 'none';
-    }, 3000);
+    setTimeout(() => { messageDiv.style.display = 'none'; }, 3000);
 }
