@@ -19,6 +19,10 @@ from app.database import get_db
 # tags=["Estudiantes"]: grupo en la documentación automática
 router = APIRouter(prefix="/students", tags=["Estudiantes"])
 
+@router.post("/students/")
+def create_student(student: Student, db: Session = Depends(get_db)):
+    return StudentController.create(student, db)
+
 
 # GET /students/ - Obtiene todos los estudiantes
 # response_model: define el formato de respuesta JSON
