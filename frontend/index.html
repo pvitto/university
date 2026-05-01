@@ -3,54 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Estudiantes</title>
+    <title>Dashboard | Gestión Universitaria</title>
+    <!-- Google Fonts para un look más moderno -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Gestión de Estudiantes</h1>
-        
-        <!-- Formulario para crear/editar estudiante -->
-        <div class="card">
-            <h2 id="form-title">Nuevo Estudiante</h2>
-            <form id="student-form">
-                <input type="hidden" id="student-id">
-                <div class="form-group">
-                    <label for="name">Nombre:</label>
-                    <input type="text" id="name" name="name" required minlength="2">
-                </div>
-                <div class="form-group">
-                    <label for="age">Edad:</label>
-                    <input type="number" id="age" name="age" required min="1">
-                </div>
-                <div class="form-group">
-                    <label for="grade">Nota (0-5):</label>
-                    <input type="number" id="grade" name="grade" required min="0" max="5" step="0.1">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" id="submit-btn">Guardar</button>
-                    <button type="button" id="cancel-btn" class="btn-cancel" style="display: none;">Cancelar</button>
-                </div>
-            </form>
-        </div>
+        <header>
+            <h1>Gestión de Estudiantes</h1>
+            <p class="subtitle">Panel de administración académica</p>
+        </header>
 
-        <!-- Lista de estudiantes -->
-        <div class="card">
-            <h2>Lista de Estudiantes</h2>
-            <table id="students-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Edad</th>
-                        <th>Nota</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="students-list">
-                    <!-- Los estudiantes se cargarán aquí con AJAX -->
-                </tbody>
-            </table>
+        <!-- Notificaciones/Alertas -->
+        <div id="alert-container" class="alert-hidden"></div>
+        
+        <div class="grid-layout">
+            <!-- Columna Izquierda: Formulario -->
+            <aside class="card">
+                <div class="card-header">
+                    <h2 id="form-title">Registro de Alumno</h2>
+                </div>
+                <form id="student-form">
+                    <input type="hidden" id="student-id">
+                    
+                    <div class="form-group">
+                        <label for="name">Nombre Completo</label>
+                        <input type="text" id="name" name="name" placeholder="Ej. Juan Pérez" required minlength="2">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Edad</label>
+                        <input type="number" id="age" name="age" placeholder="20" required min="1" max="99">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="grade">Nota Académica (0-5)</label>
+                        <input type="number" id="grade" name="grade" placeholder="4.5" required min="0" max="5" step="0.1">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="submit-btn" class="btn-primary">Guardar Estudiante</button>
+                        <button type="button" id="cancel-btn" class="btn-cancel" style="display: none;">Cancelar Edición</button>
+                    </div>
+                </form>
+            </aside>
+
+            <!-- Columna Derecha: Tabla y Filtros -->
+            <main class="card">
+                <div class="table-controls">
+                    <h2>Lista de Estudiantes</h2>
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Buscar por nombre...">
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="students-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Edad</th>
+                                <th>Nota</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-list">
+                            <!-- Se llena dinámicamente con app.js -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Indicador de carga -->
+                <div id="loading-spinner" class="spinner-hidden">
+                    Cargando datos...
+                </div>
+            </main>
         </div>
     </div>
 
