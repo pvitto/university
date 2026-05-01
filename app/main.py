@@ -1,30 +1,27 @@
 # Importación de FastAPI y CORS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.controllers.auth_controller import auth_bp
+from fastapi.staticfiles import StaticFiles    # AGREGADO: para servir archivos estáticos del frontend
+from fastapi.responses import FileResponse     # AGREGADO: para servir login.html e index.html
 
-# Importación del router de estudiantes
-# students.py contiene todas las rutas relacionadas con estudiantes
+# Routers originales del profesor
 from app.routes import students, email
+from app.routes import auth                    # AGREGADO: router del login con OTP
 
-# Importación de engine y Base para crear las tablas
-# engine: conexión a la base de datos SQLite
-# Base: clase base para los modelos ORM
+# Base de datos
 from app.database import engine, Base
 
-# Importación de los middlewares
+# Middlewares del profesor
 from app.middleware.logging_middleware import LoggingMiddleware
 from app.middleware.rate_limit_middleware import RateLimitMiddleware
 from app.middleware.audit_middleware import AuditMiddleware
 
-# create_all(): crea todas las tablas definidas en los modelos
-# Se ejecuta al iniciar la app y crea el archivo 'students.db' si no existe
+# Crea todas las tablas (students + otps)
 Base.metadata.create_all(bind=engine)
 
-# Instancia principal de FastAPI
 app = FastAPI()
 
-# Middleware CORS para permitir solicitudes del frontend
+# CORS para permitir solicitudes del frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,26 +30,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registro de middlewares
-# El orden de add_middleware determina el orden de ejecución:
-# 1. RateLimitMiddleware - primero (más cercano al cliente)
-# 2. AuditMiddleware - segundo
-# 3. LoggingMiddleware - último (más cercano a la app)
+# Middlewares del profesor
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuditMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
-# Registro del router de estudiantes
-# Todas las rutas de students.py estarán disponibles en /students
+# Routers
 app.include_router(students.router)
 app.include_router(email.router)
+app.include_router(auth.router)                # AGREGADO: expone /auth/request-otp y /auth/verify-otp
 
-service_otp
-app.register_blueprint(auth_bp, url_prefix="/auth")
-=======
-app.include_router(students.router, prefix="/api/v1", tags=["Students"])
+# AGREGADO: servir archivos estáticos del frontend (JS, CSS)
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
+
+# AGREGADO: servir login.html en la raíz
 @app.get("/")
-def read_root():
-    return {"message": "API de Universidad funcionando"}
-main
+def serve_login():
+    return FileResponse("frontend/login.html")
+
+
+# AGREGADO: servir index.html en /index
+@app.get("/index")
+def serve_index():
+    return FileResponse("frontend/index.html")
