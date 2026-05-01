@@ -47,4 +47,12 @@ app.add_middleware(RateLimitMiddleware)
 app.include_router(students.router)
 app.include_router(email.router)
 
+service_otp
 app.register_blueprint(auth_bp, url_prefix="/auth")
+=======
+app.include_router(students.router, prefix="/api/v1", tags=["Students"])
+
+@app.get("/")
+def read_root():
+    return {"message": "API de Universidad funcionando"}
+main
