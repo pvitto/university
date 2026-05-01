@@ -45,3 +45,9 @@ app.add_middleware(RateLimitMiddleware)
 # Todas las rutas de students.py estarán disponibles en /students
 app.include_router(students.router)
 app.include_router(email.router)
+
+app.include_router(students.router, prefix="/api/v1", tags=["Students"])
+
+@app.get("/")
+def read_root():
+    return {"message": "API de Universidad funcionando"}
